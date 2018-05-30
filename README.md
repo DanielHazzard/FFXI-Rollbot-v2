@@ -22,9 +22,8 @@ Type the name of the person you wish to follow if you want the CORSAIR to automa
 
 Once done, press RUN BOT to beging the rollbot.
 
-
 ### notes
-Combat profile is NOT yet enabled.
+Roll data is sent through a Windower/Ashita Addon using UDP to send the data through the local internet. As such, it must be allowed access through your firewall.
 
 ### settings
 Settings can be changed by enabling or disabling the toggle buttons.
