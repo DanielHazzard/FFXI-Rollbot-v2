@@ -1,0 +1,16 @@
+C:\Users\Daniel\Desktop\exclusions\GITHUB DESKTOP\CorsairRollBot_WF\CorsairRollBot_WF\bin\Debug\CorsairRollBot_WF.exe.config
+C:\Users\Daniel\Desktop\exclusions\GITHUB DESKTOP\CorsairRollBot_WF\CorsairRollBot_WF\bin\Debug\CorsairRollBot_WF.exe
+C:\Users\Daniel\Desktop\exclusions\GITHUB DESKTOP\CorsairRollBot_WF\CorsairRollBot_WF\bin\Debug\CorsairRollBot_WF.pdb
+C:\Users\Daniel\Desktop\exclusions\GITHUB DESKTOP\CorsairRollBot_WF\CorsairRollBot_WF\obj\Debug\CorsairRollBot_WF.Form1.resources
+C:\Users\Daniel\Desktop\exclusions\GITHUB DESKTOP\CorsairRollBot_WF\CorsairRollBot_WF\obj\Debug\CorsairRollBot_WF.Properties.Resources.resources
+C:\Users\Daniel\Desktop\exclusions\GITHUB DESKTOP\CorsairRollBot_WF\CorsairRollBot_WF\obj\Debug\CorsairRollBot_WF.csproj.GenerateResource.cache
+C:\Users\Daniel\Desktop\exclusions\GITHUB DESKTOP\CorsairRollBot_WF\CorsairRollBot_WF\obj\Debug\CorsairRollBot_WF.csproj.CoreCompileInputs.cache
+C:\Users\Daniel\Desktop\exclusions\GITHUB DESKTOP\CorsairRollBot_WF\CorsairRollBot_WF\obj\Debug\CorsairRollBot_WF.exe
+C:\Users\Daniel\Desktop\exclusions\GITHUB DESKTOP\CorsairRollBot_WF\CorsairRollBot_WF\obj\Debug\CorsairRollBot_WF.pdb
+C:\Users\Daniel\Desktop\exclusions\GITHUB DESKTOP\CorsairRollBot_WF\CorsairRollBot_WF\bin\Debug\MetroFramework.dll
+C:\Users\Daniel\Desktop\exclusions\GITHUB DESKTOP\CorsairRollBot_WF\CorsairRollBot_WF\bin\Debug\MetroFramework.Fonts.dll
+C:\Users\Daniel\Desktop\exclusions\GITHUB DESKTOP\CorsairRollBot_WF\CorsairRollBot_WF\obj\Debug\CorsairRollBot_WF.csproj.CopyComplete
+C:\Users\Daniel\Desktop\exclusions\GITHUB DESKTOP\CorsairRollBot_WF\CorsairRollBot_WF\obj\Debug\CorsairRollBot_WF.csprojAssemblyReference.cache
+C:\Users\Daniel\Desktop\exclusions\GITHUB DESKTOP\CorsairRollBot_WF\CorsairRollBot_WF\bin\Debug\EliteMMO.API.dll
+C:\Users\Daniel\Desktop\exclusions\GITHUB DESKTOP\CorsairRollBot_WF\CorsairRollBot_WF\bin\Debug\EliteAPI.dll
+C:\Users\Daniel\Desktop\exclusions\GITHUB DESKTOP\CorsairRollBot_WF\CorsairRollBot_WF\bin\Debug\MetroFramework.Design.dll
