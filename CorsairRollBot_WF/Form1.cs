@@ -101,6 +101,8 @@ namespace CorsairRollBot_WF
 
         private int CurrentRoll = 0;
 
+        private int LastKnownRoll = 0;
+
         private bool firstSelect = false;
 
         public int lastCommand = 0;
@@ -513,9 +515,14 @@ namespace CorsairRollBot_WF
                 return;
             }
 
-            if (timerBusy == true)
+            if (timerBusy == true || (LastKnownRoll == CurrentRoll && BuffChecker(309) == true)) // The bot is BUSY or The Current Roll has not changed yet, so wait for another tick.
             {
                 return;
+            }
+
+            if (BuffChecker(309) == false) // You can no longer double up, so LastKnownRoll can be reset to 0.
+            {
+                LastKnownRoll = 0;
             }
 
             try
@@ -621,6 +628,7 @@ namespace CorsairRollBot_WF
                                         if (BuffChecker(357) == true && AbilityRecast("Double-Up") == 0)
                                         {
                                             _api.ThirdParty.SendString("/ja \"Double-Up\" <me>");
+                                            await Task.Delay(TimeSpan.FromSeconds(1));
 
                                         }
                                         else if (CurrentRoll == 10 && ((SnakeEye_Switch.Checked == true && AbilityRecast("Snake Eye") == 0) || (SnakeEye_Switch.Checked == true && RandomDeal_Switch.Checked == true && AbilityRecast("Random Deal") == 0)))
@@ -630,6 +638,7 @@ namespace CorsairRollBot_WF
                                             {
                                                 // SNAKE EYE CAN BE USED SO DO SO
                                                 _api.ThirdParty.SendString("/ja \"Snake Eye\" <me>");
+                                                await Task.Delay(TimeSpan.FromSeconds(1));
                                             }
                                             else if (SnakeEye_Switch.Checked == true && HasAbility("Snake Eye") == true && AbilityRecast("Snake Eye") != 0 && BuffChecker(357) != true
                                                 && RandomDeal_Switch.Checked == true && HasAbility("Random Deal") == true && AbilityRecast("Random Deal") == 0)
@@ -637,6 +646,7 @@ namespace CorsairRollBot_WF
                                                 // SNAKE EYE IS ON RECAST BUT RANDOM DEAL IS NOT, TRY TO
                                                 // RESET SNAKE EYE
                                                 _api.ThirdParty.SendString("/ja \"Random Deal\" <me>");
+                                                await Task.Delay(TimeSpan.FromSeconds(1));
                                             }
                                             else
                                             {
@@ -650,6 +660,7 @@ namespace CorsairRollBot_WF
                                             if (AbilityRecast("Double-Up") == 0)
                                             {
                                                 _api.ThirdParty.SendString("/ja \"Double-Up\" <me>");
+                                                await Task.Delay(TimeSpan.FromSeconds(1));
                                             }
                                         }
                                     }
@@ -666,6 +677,7 @@ namespace CorsairRollBot_WF
                             if (BuffChecker(309) == true && HasAbility("Fold") == true && AbilityRecast("Fold") == 0)
                             {
                                 _api.ThirdParty.SendString("/ja \"Fold\" <me>");
+                                await Task.Delay(TimeSpan.FromSeconds(1));
                             }
 
                             // NOW CHECK IF THE FIRST ROLL IS ACTIVE
@@ -675,6 +687,7 @@ namespace CorsairRollBot_WF
                                 if (CrookedCards_Switch.Checked == true && HasAbility("Crooked Cards") == true && AbilityRecast("Crooked Cards") == 0)
                                 {
                                     _api.ThirdParty.SendString("/ja \"Crooked Cards\" <me>");
+                                    await Task.Delay(TimeSpan.FromSeconds(1));
                                 }
                                 // OTHERWISE USE THE ROLL
                                 else
@@ -682,6 +695,7 @@ namespace CorsairRollBot_WF
                                     RollActive = 1;
                                     CurrentRoll = 0;
                                     _api.ThirdParty.SendString("/ja \"" + rollOne.Roll_name + "\" <me>");
+                                    await Task.Delay(TimeSpan.FromSeconds(1));
 
                                 }
                             }
@@ -692,6 +706,7 @@ namespace CorsairRollBot_WF
                                 RollActive = 2;
                                 CurrentRoll = 0;
                                 _api.ThirdParty.SendString("/ja \"" + rollTwo.Roll_name + "\" <me>");
+                                await Task.Delay(TimeSpan.FromSeconds(1));
 
                             }
                             else if (BuffChecker(rollOne.Buff_id) == true && BuffChecker(rollTwo.Buff_id) == true)
@@ -860,6 +875,9 @@ namespace CorsairRollBot_WF
 
                     if (data_received[0] == "crollbot_addon")
                     {
+
+                        LastKnownRoll = CurrentRoll;
+
 
                         // UPDATE ROLL INFORMATION
                         CurrentRoll = Convert.ToInt32(data_received[1]);

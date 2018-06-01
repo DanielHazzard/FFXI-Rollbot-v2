@@ -449,7 +449,7 @@
             this.Name = "Form1";
             this.Resizable = false;
             this.Style = MetroFramework.MetroColorStyle.Purple;
-            this.Text = "Corsair Roll Bot v2.0";
+            this.Text = "Corsair Roll Bot v2.0.1";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.groupBox1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
