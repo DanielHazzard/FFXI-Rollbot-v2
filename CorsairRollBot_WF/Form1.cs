@@ -72,12 +72,12 @@ namespace CorsairRollBot_WF
             private int _badgeValue;
             public int BadgeValue
             {
-                get { return _badgeValue; }
+                get => _badgeValue;
                 set { _badgeValue = value; NotifyPropertyChanged(); }
             }
 
             public event PropertyChangedEventHandler PropertyChanged;
-            private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+            private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
             {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
@@ -108,6 +108,10 @@ namespace CorsairRollBot_WF
         public int lastCommand = 0;
 
         public bool timerBusy = false;
+
+        public bool followBusy = false;
+
+        public bool isMoving = false;
 
         private bool FollowerStuck = false;
 
@@ -341,7 +345,7 @@ namespace CorsairRollBot_WF
                 Lucky = 4,
                 Unlucky = 9,
                 Buff_id = 333,
-                Position = 26
+                Position = 25
             });
             rolls.Add(new RollData
             {
@@ -349,7 +353,7 @@ namespace CorsairRollBot_WF
                 Lucky = 5,
                 Unlucky = 8,
                 Buff_id = 334,
-                Position = 25
+                Position = 26
             });
 
             rolls.Add(new RollData
@@ -391,23 +395,23 @@ namespace CorsairRollBot_WF
 
             if (File.Exists("eliteapi.dll") && File.Exists("elitemmo.api.dll"))
             {
-                var pol = Process.GetProcessesByName("pol");
+                Process[] pol = Process.GetProcessesByName("pol");
 
                 if (pol.Length < 1)
                 {
-                    MetroMessageBox.Show(this, "Notice:", "No POL instances were able to be located." + "\n\n" +
+                    MetroMessageBox.Show(this, "No POL instances were able to be located." + "\n\n" +
                         "Please note: If you use a private server make sure the program used to access it has been renamed to POL " +
-                        "otherwise this bot will not be able to locate it.", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        "otherwise this bot will not be able to locate it.", "Notice:", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
                 else
                 {
-                    for (var i = 0; i < pol.Length; i++)
+                    for (int i = 0; i < pol.Length; i++)
                     {
-                        this.POLID.Items.Add(pol[i].MainWindowTitle);
-                        this.processids.Items.Add(pol[i].Id);
+                        POLID.Items.Add(pol[i].MainWindowTitle);
+                        processids.Items.Add(pol[i].Id);
                     }
-                    this.POLID.SelectedIndex = 0;
-                    this.processids.SelectedIndex = 0;
+                    POLID.SelectedIndex = 0;
+                    processids.SelectedIndex = 0;
                 }
             }
             else
@@ -425,26 +429,26 @@ namespace CorsairRollBot_WF
 
             if (botRunning == false)
             {
-                if (this.ActivityButton.InvokeRequired)
+                if (ActivityButton.InvokeRequired)
                 {
-                    this.ActivityButton.Invoke(new MethodInvoker(delegate () { this.ActivityButton.BackColor = Color.Green; this.ActivityButton.Text = "RUNNING!"; }));
+                    ActivityButton.Invoke(new MethodInvoker(delegate () { ActivityButton.BackColor = Color.Green; ActivityButton.Text = "RUNNING!"; }));
                 }
                 else
                 {
-                    this.ActivityButton.BackColor = Color.Green; this.ActivityButton.Text = "RUNNING!";
+                    ActivityButton.BackColor = Color.Green; ActivityButton.Text = "RUNNING!";
                 }
 
                 botRunning = true;
             }
             else
             {
-                if (this.ActivityButton.InvokeRequired)
+                if (ActivityButton.InvokeRequired)
                 {
-                    this.ActivityButton.Invoke(new MethodInvoker(delegate () { this.ActivityButton.BackColor = Color.Red; this.ActivityButton.Text = "PAUSED!"; }));
+                    ActivityButton.Invoke(new MethodInvoker(delegate () { ActivityButton.BackColor = Color.Red; ActivityButton.Text = "PAUSED!"; }));
                 }
                 else
                 {
-                    this.ActivityButton.BackColor = Color.Red; this.ActivityButton.Text = "PAUSED!";
+                    ActivityButton.BackColor = Color.Red; ActivityButton.Text = "PAUSED!";
                 }
 
                 botRunning = false;
@@ -456,12 +460,12 @@ namespace CorsairRollBot_WF
         private void Select_POLID_Click(object sender, EventArgs e)
         {
 
-            this.processids.SelectedIndex = this.POLID.SelectedIndex;
-            _api = new EliteAPI((int)this.processids.SelectedItem);
-            this.Select_POLID.Text = "SELECTED";
-            this.Select_POLID.BackColor = Color.Green;
+            processids.SelectedIndex = POLID.SelectedIndex;
+            _api = new EliteAPI((int)processids.SelectedItem);
+            Select_POLID.Text = "SELECTED";
+            Select_POLID.BackColor = Color.Green;
 
-            foreach (var dats in Process.GetProcessesByName("pol").Where(dats => POLID.Text == dats.MainWindowTitle))
+            foreach (Process dats in Process.GetProcessesByName("pol").Where(dats => POLID.Text == dats.MainWindowTitle))
             {
                 for (int i = 0; i < dats.Modules.Count; i++)
                 {
@@ -480,7 +484,10 @@ namespace CorsairRollBot_WF
             {
 
                 EliteAPI.ChatEntry cl = _api.Chat.GetNextChatLine();
-                while (cl != null) cl = _api.Chat.GetNextChatLine();
+                while (cl != null)
+                {
+                    cl = _api.Chat.GetNextChatLine();
+                }
 
                 if (WindowerMode == "Windower")
                 {
@@ -510,8 +517,14 @@ namespace CorsairRollBot_WF
 
         private async void Roll_Timer_TickAsync(object sender, EventArgs e)
         {
-            if (_api == null || _api.Player.LoginStatus != (int)LoginStatus.LoggedIn || _api.Player.LoginStatus == (int)LoginStatus.Loading)
+            if (_api == null)
             {
+                return;
+            }
+
+            if (_api.Player.LoginStatus != (int)LoginStatus.LoggedIn || _api.Player.LoginStatus == (int)LoginStatus.Loading)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(17));
                 return;
             }
 
@@ -527,6 +540,7 @@ namespace CorsairRollBot_WF
 
             try
             {
+
                 timerBusy = true;
 
                 if (BuffChecker(308) == false)
@@ -537,16 +551,19 @@ namespace CorsairRollBot_WF
 
                 // ONCE ALL THE CHECKS ARE DONE LETS CONTINUE WITH THE CHECKS
 
-                if (botRunning == true && !knownCities.Contains(_api.Player.ZoneId))
+                if (botRunning == true && !knownCities.Contains(_api.Player.ZoneId) && isMoving == false)
                 {
+
+                    FollowTargetAsync();
+
                     // FIRST GRAB THE REQUIRED ROLL DATA
-                    var rollOne = rolls.Where(r => r.Position == RollOne_ComboBox.SelectedIndex).FirstOrDefault();
-                    var rollTwo = rolls.Where(r => r.Position == RollTwo_ComboBox.SelectedIndex).FirstOrDefault();
+                    RollData rollOne = rolls.Where(r => r.Position == RollOne_ComboBox.SelectedIndex).FirstOrDefault();
+                    RollData rollTwo = rolls.Where(r => r.Position == RollTwo_ComboBox.SelectedIndex).FirstOrDefault();
 
                     // NOW BEFORE EVEN ATTEMPTING THE ROLLS CHECK IF ANY PT MEMBERS ARE REQUIRED TO BE
                     // NEARBY AND IF THEY ARE THAT THEY'RE CLOSE BY THEN IF THEY ARE BEGIN ROLLS
 
-                    var res = (from item in Member_List where item.Checked == true select item).ToList<PartyRequirements>();
+                    List<PartyRequirements> res = (from item in Member_List where item.Checked == true select item).ToList<PartyRequirements>();
                     if (res.Count() >= 1)
                     {
                         foreach (PartyRequirements item in res)
@@ -554,14 +571,20 @@ namespace CorsairRollBot_WF
                             if (item.Checked)
                             {
                                 if (DistanceChecker(item.CharacterName) == true)
+                                {
                                     AllInRange = true;
+                                }
                                 else
+                                {
                                     AllInRange = false;
+                                }
                             }
                         }
                     }
                     else
+                    {
                         AllInRange = true;
+                    }
 
                     if (AllInRange)
                     {
@@ -631,7 +654,7 @@ namespace CorsairRollBot_WF
                                             await Task.Delay(TimeSpan.FromSeconds(1));
 
                                         }
-                                        else if (CurrentRoll == 10 && ((SnakeEye_Switch.Checked == true && AbilityRecast("Snake Eye") == 0) || (SnakeEye_Switch.Checked == true && RandomDeal_Switch.Checked == true && AbilityRecast("Random Deal") == 0)))
+                                        else if (CurrentRoll == SnakeEye_Number.Value && ((SnakeEye_Switch.Checked == true && AbilityRecast("Snake Eye") == 0) || (SnakeEye_Switch.Checked == true && RandomDeal_Switch.Checked == true && AbilityRecast("Random Deal") == 0)))
                                         {
                                             // IF THE ROLL IS 10 THEN USE SNAKE EYE
                                             if (SnakeEye_Switch.Checked == true && HasAbility("Snake Eye") == true && AbilityRecast("Snake Eye") == 0 && BuffChecker(357) != true)
@@ -726,7 +749,22 @@ namespace CorsairRollBot_WF
             }
         }
 
-        private void Follow_Timer_Tick(object sender, EventArgs e)
+
+        private uint GetTargetIdByName(string name)
+        {
+            for (int x = 0; x < 2048; x++)
+            {
+                EliteAPI.XiEntity ID = _api.Entity.GetEntity(x);
+
+                if (ID.Name != null && ID.Name.ToLower() == name.ToLower())
+                {
+                    return ID.TargetID;
+                }
+            }
+            return 0;
+        }
+
+        private async void FollowTargetAsync()
         {
             // Check if you have the required Buffs active, if not then run them.
             if (_api == null || _api.Player.LoginStatus != (int)LoginStatus.LoggedIn || _api.Player.LoginStatus == (int)LoginStatus.Loading)
@@ -734,97 +772,35 @@ namespace CorsairRollBot_WF
                 return;
             }
 
-            string followerName = String.Empty;
-
-            if (FollowerTarget.Text != String.Empty)
+            if (FollowerTarget.Text == string.Empty || FollowerTarget.Text == "Follower target name")
             {
-                followerName = FollowerTarget.Text;
+                return;
             }
 
-            if (followerName != String.Empty && botRunning != false)
+            uint followID = GetTargetIdByName(FollowerTarget.Text);
+
+            if (followID == 0)
             {
-
-                // The base followID needed to store the future ID.
-                int followID = 0;
-
-                // Search all possible entities for the follow tartget
-                for (var x = 0; x < 2048; x++)
-                {
-                    var entity = _api.Entity.GetEntity(x);
-                    if (entity.Name != null && entity.Name.ToLower().Equals(followerName.ToLower()))
-                    {
-                        // If the follow Name = Entity Name then set the followID to this target
-                        followID = Convert.ToInt32(entity.TargetID);
-                        // Since no more checks are needed save resources and break the for command
-                        break;
-                    }
-                }
-
-                // iIf the FollowID is not the base 0 then you have a valid target to follow so check distance and follow.
-                if (followID != 0)
-                {
-                    // Last known positions, used for stuck checker.
-                    float lastX;
-                    float lastY;
-                    float lastZ;
-
-                    // Grab the person you're to follow's entity.
-                    var followTarget = _api.Entity.GetEntity(followID);
-
-                    // Check if you are further than the maximum distance from the followTarget
-                    if (Math.Truncate(followTarget.Distance) >= 6 && Math.Truncate(followTarget.Distance) < 45)
-                    {
-                        if (_api.AutoFollow.IsAutoFollowing != true)
-                        {
-                            // First remove the target as we don't want that interfering
-                            _api.Target.SetTarget(0);
-
-                            // While to run the follow function until below 6 yalms of the follow target
-                            while (Math.Truncate(followTarget.Distance) >= 6)
-                            {
-                                // Grab the targer ID's float info
-                                float Target_X = followTarget.X;
-                                float Target_Y = followTarget.Y;
-                                float Target_Z = followTarget.Z;
-
-                                // Grab the player float info
-                                float Player_X = _api.Player.X;
-                                float Player_Y = _api.Player.Y;
-                                float Player_Z = _api.Player.Z;
-
-                                // Set auto follow co-ordinates
-                                _api.AutoFollow.SetAutoFollowCoords(Target_X - Player_X,
-                                                                    Target_Y - Player_Y,
-                                                                    Target_Z - Player_Z);
-
-                                // Run the follow action
-                                _api.AutoFollow.IsAutoFollowing = true;
-
-                                // Stuck checker
-                                lastX = _api.Player.X;
-                                lastY = _api.Player.Y;
-                                lastZ = _api.Player.Z;
-
-                                // Thread.Sleep(TimeSpan.FromSeconds(0.1));
-
-                                // STUCK CHECKER
-                                float genX = lastX - _api.Player.X;
-                                float genY = lastY - _api.Player.Y;
-                                float genZ = lastZ - _api.Player.Z;
-                                double distance = Math.Sqrt(genX * genX + genY * genY + genZ * genZ);
-
-                                if (distance < .1)
-                                {
-                                    FollowerStuck = true;
-                                    _api.AutoFollow.IsAutoFollowing = false;
-                                }
-                            }
-                            _api.AutoFollow.IsAutoFollowing = false;
-                            FollowerStuck = false;
-                        }
-                    }
-                }
+                return;
             }
+
+            EliteAPI.XiEntity FollowedCharacter = _api.Entity.GetEntity(Convert.ToInt32(followID));
+            EliteAPI.PlayerTools PlayerCharacter = _api.Player;
+
+            isMoving = true;
+            while (Math.Truncate(FollowedCharacter.Distance) >= (float)6)
+            {
+                _api.AutoFollow.SetAutoFollowCoords(FollowedCharacter.X - PlayerCharacter.X,
+                                                   FollowedCharacter.Y - PlayerCharacter.Y,
+                                                   FollowedCharacter.Z - PlayerCharacter.Z);
+
+                _api.AutoFollow.IsAutoFollowing = true;
+
+                await Task.Delay(TimeSpan.FromSeconds(0.1));
+            }
+            _api.AutoFollow.IsAutoFollowing = false;
+            isMoving = false;
+
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -882,13 +858,13 @@ namespace CorsairRollBot_WF
                         // UPDATE ROLL INFORMATION
                         CurrentRoll = Convert.ToInt32(data_received[1]);
 
-                        if (this.CurrentRoll_Number.InvokeRequired)
+                        if (CurrentRoll_Number.InvokeRequired)
                         {
-                            this.CurrentRoll_Number.Invoke(new MethodInvoker(delegate () { this.CurrentRoll_Number.Text = data_received[1]; }));
+                            CurrentRoll_Number.Invoke(new MethodInvoker(delegate () { CurrentRoll_Number.Text = data_received[1]; }));
                         }
                         else
                         {
-                            this.CurrentRoll_Number.Text = data_received[1];
+                            CurrentRoll_Number.Text = data_received[1];
                         }
 
                     }
@@ -896,39 +872,39 @@ namespace CorsairRollBot_WF
                     {
                         if (data_received[1].ToLower() == "validated")
                         {
-                            if (this.AddonActive.InvokeRequired)
+                            if (AddonActive.InvokeRequired)
                             {
-                                this.AddonActive.Invoke(new MethodInvoker(delegate () { this.AddonActive.Text = "YES"; this.AddonActive.BackColor = Color.Green; }));
+                                AddonActive.Invoke(new MethodInvoker(delegate () { AddonActive.Text = "YES"; AddonActive.BackColor = Color.Green; }));
                             }
                             else
                             {
-                                this.AddonActive.Text = "YES"; this.AddonActive.BackColor = Color.Green;
+                                AddonActive.Text = "YES"; AddonActive.BackColor = Color.Green;
                             }
                         }
                         else if (data_received[1].ToLower() == "toggle")
                         {
                             if (botRunning == false)
                             {
-                                if (this.ActivityButton.InvokeRequired)
+                                if (ActivityButton.InvokeRequired)
                                 {
-                                    this.ActivityButton.Invoke(new MethodInvoker(delegate () { this.ActivityButton.BackColor = Color.Green; this.ActivityButton.Text = "RUNNING!"; }));
+                                    ActivityButton.Invoke(new MethodInvoker(delegate () { ActivityButton.BackColor = Color.Green; ActivityButton.Text = "RUNNING!"; }));
                                 }
                                 else
                                 {
-                                    this.ActivityButton.BackColor = Color.Green; this.ActivityButton.Text = "RUNNING!";
+                                    ActivityButton.BackColor = Color.Green; ActivityButton.Text = "RUNNING!";
                                 }
 
                                 botRunning = true;
                             }
                             else
                             {
-                                if (this.ActivityButton.InvokeRequired)
+                                if (ActivityButton.InvokeRequired)
                                 {
-                                    this.ActivityButton.Invoke(new MethodInvoker(delegate () { this.ActivityButton.BackColor = Color.Red; this.ActivityButton.Text = "PAUSED!"; }));
+                                    ActivityButton.Invoke(new MethodInvoker(delegate () { ActivityButton.BackColor = Color.Red; ActivityButton.Text = "PAUSED!"; }));
                                 }
                                 else
                                 {
-                                    this.ActivityButton.BackColor = Color.Red; this.ActivityButton.Text = "PAUSED!";
+                                    ActivityButton.BackColor = Color.Red; ActivityButton.Text = "PAUSED!";
                                 }
 
                                 botRunning = false;
@@ -938,25 +914,25 @@ namespace CorsairRollBot_WF
                         else if (data_received[1].ToLower() == "stop" || data_received[1].ToLower() == "pause")
                         {
 
-                            if (this.ActivityButton.InvokeRequired)
+                            if (ActivityButton.InvokeRequired)
                             {
-                                this.ActivityButton.Invoke(new MethodInvoker(delegate () { this.ActivityButton.BackColor = Color.Red; this.ActivityButton.Text = "PAUSED!"; }));
+                                ActivityButton.Invoke(new MethodInvoker(delegate () { ActivityButton.BackColor = Color.Red; ActivityButton.Text = "PAUSED!"; }));
                             }
                             else
                             {
-                                this.ActivityButton.BackColor = Color.Red; this.ActivityButton.Text = "PAUSED!";
+                                ActivityButton.BackColor = Color.Red; ActivityButton.Text = "PAUSED!";
                             }
                             botRunning = false;
                         }
                         else if (data_received[1].ToLower() == "start" || data_received[1].ToLower() == "unpause")
                         {
-                            if (this.ActivityButton.InvokeRequired)
+                            if (ActivityButton.InvokeRequired)
                             {
-                                this.ActivityButton.Invoke(new MethodInvoker(delegate () { this.ActivityButton.BackColor = Color.Green; this.ActivityButton.Text = "RUNNING!"; }));
+                                ActivityButton.Invoke(new MethodInvoker(delegate () { ActivityButton.BackColor = Color.Green; ActivityButton.Text = "RUNNING!"; }));
                             }
                             else
                             {
-                                this.ActivityButton.BackColor = Color.Green; this.ActivityButton.Text = "RUNNING!";
+                                ActivityButton.BackColor = Color.Green; ActivityButton.Text = "RUNNING!";
                             }
                             botRunning = true;
                         }
@@ -1009,9 +985,9 @@ namespace CorsairRollBot_WF
         {
             string CharName = MemberName.ToLower();
 
-            for (var x = 0; x < 2048; x++)
+            for (int x = 0; x < 2048; x++)
             {
-                var entity2 = _api.Entity.GetEntity(x);
+                EliteAPI.XiEntity entity2 = _api.Entity.GetEntity(x);
 
                 if (entity2.Name != null && entity2.Name.ToLower() == CharName && (int)entity2.Distance < 8)
                 {
@@ -1048,13 +1024,13 @@ namespace CorsairRollBot_WF
 
             if (_api != null)
             {
-                var PartyMembers = _api.Party.GetPartyMembers();
+                List<EliteAPI.PartyMember> PartyMembers = _api.Party.GetPartyMembers();
 
                 PartyMembersRequired.Items.Clear();
 
                 if (PartyMembers.Count() > 1)
                 {
-                    foreach (var PT_Data in PartyMembers)
+                    foreach (EliteAPI.PartyMember PT_Data in PartyMembers)
                     {
                         if (PT_Data.Name != _api.Player.Name && !PartyMembersRequired.Items.Contains(PT_Data.Name) && PT_Data.Name != "" && PT_Data.Active >= 1)
                         {
@@ -1075,11 +1051,13 @@ namespace CorsairRollBot_WF
         public int AbilityRecast(string checked_abilityName)
         {
             int id = _api.Resources.GetAbility(checked_abilityName, 0).TimerID;
-            var IDs = _api.Recast.GetAbilityIds();
-            for (var x = 0; x < IDs.Count; x++)
+            List<int> IDs = _api.Recast.GetAbilityIds();
+            for (int x = 0; x < IDs.Count; x++)
             {
                 if (IDs[x] == id)
+                {
                     return _api.Recast.GetAbilityRecast(x);
+                }
             }
             return 0;
         }
@@ -1105,11 +1083,11 @@ namespace CorsairRollBot_WF
 
         private void DEBUG_Click(object sender, EventArgs e)
         {
-            string Debug_MSG = String.Empty;
+            string Debug_MSG = string.Empty;
 
             if (Member_List != null && Member_List.Count() > 0)
             {
-                foreach (var CharacterD in Member_List)
+                foreach (PartyRequirements CharacterD in Member_List)
                 {
                     Debug_MSG = Debug_MSG + " " + CharacterD.CharacterName + "\n";
                 }
@@ -1125,9 +1103,9 @@ namespace CorsairRollBot_WF
 
             int count = PartyMembersRequired.Items.Count;
 
-            foreach (Object selecteditem in PartyMembersRequired.SelectedItems)
+            foreach (object selecteditem in PartyMembersRequired.SelectedItems)
             {
-                String strItem = selecteditem as String;
+                string strItem = selecteditem as string;
                 Member_List.Add(new PartyRequirements { Checked = true, CharacterName = strItem });
             }
         }
@@ -1135,6 +1113,35 @@ namespace CorsairRollBot_WF
         private void ReloadParty_Click(object sender, EventArgs e)
         {
             GrabParty();
+        }
+
+        private void label1_Click_1(object sender, EventArgs e)
+        {
+            FollowerTarget.Text = string.Empty;
+        }
+
+        private void PauseTimersChecks_Tick(object sender, EventArgs e)
+        {
+            if (_api != null)
+            {
+                if (_api.Player.LoginStatus == (int)LoginStatus.Loading || _api.Player.LoginStatus == (int)LoginStatus.Loading)
+                {
+                    if (PauseOnZone_Switch.Checked == true)
+                    {
+                        if (ActivityButton.InvokeRequired)
+                        {
+                            ActivityButton.Invoke(new MethodInvoker(delegate () { ActivityButton.BackColor = Color.Red; ActivityButton.Text = "ZONED!"; }));
+                        }
+                        else
+                        {
+                            ActivityButton.BackColor = Color.Red; ActivityButton.Text = "ZONED!";
+                        }
+
+                        botRunning = false;
+                    }
+
+                }
+            }
         }
     }
 }
